@@ -1,7 +1,7 @@
 apiVersion: v2
 name: karpenter
-version: 1.6.0
+version: 1.6.1
 dependencies:
   - name: karpenter
     repository: oci://public.ecr.aws/karpenter
-    version: 1.6.0
+    version: 1.6.1
