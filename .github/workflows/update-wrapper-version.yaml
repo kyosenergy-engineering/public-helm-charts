@@ -1,0 +1,53 @@
+name: Update wrapper chart version
+
+on:
+  pull_request:
+    paths:
+      - 'charts/**/Chart.yaml'
+      - 'charts/**/Chart.lock'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump-wrapper-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Bump wrapper chart version
+        run: |
+          for chart in charts/*; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "🔍 Processing chart: $chart"
+
+              # Get first dependency version
+              DEP_VERSION=$(yq '.dependencies[0].version' "$chart/Chart.yaml")
+              if [[ "$DEP_VERSION" == "null" || -z "$DEP_VERSION" ]]; then
+                echo "⚠️  No dependencies found in $chart/Chart.yaml"
+                continue
+              fi
+
+              # Update the chart version
+              yq -i ".version = \"$DEP_VERSION\"" "$chart/Chart.yaml"
+              echo "✅ Set version to $DEP_VERSION"
+            fi
+          done
+
+      - name: Commit version changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add charts/*/Chart.yaml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: sync wrapper chart version with dependency"
+            git push
+          fi
