@@ -42,7 +42,13 @@ jobs:
               CHART_PACKAGE=$(ls .cr-packages/${CHART_NAME}-*.tgz)
               CHART_VERSION=$(helm show chart "$CHART_PACKAGE" | grep '^version:' | awk '{print $2}')
 
-              echo "Pushing $CHART_NAME:$CHART_VERSION to GHCR..."
-              helm push "$CHART_PACKAGE" oci://ghcr.io/${{ github.repository_owner }}
+              # Check if chart version already exists in GHCR
+              echo "Checking if $CHART_NAME:$CHART_VERSION exists in GHCR..."
+              if helm show chart oci://ghcr.io/${{ github.repository_owner }}/$CHART_NAME --version "$CHART_VERSION" > /dev/null 2>&1; then
+                echo "$CHART_NAME:$CHART_VERSION already exists in GHCR, skipping push."
+              else
+                echo "Pushing $CHART_NAME:$CHART_VERSION to GHCR..."
+                helm push "$CHART_PACKAGE" oci://ghcr.io/${{ github.repository_owner }}
+              fi
             fi
           done
