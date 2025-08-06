@@ -2,9 +2,8 @@ name: Update wrapper chart version
 
 on:
   pull_request:
-    paths:
-      - 'charts/**/Chart.yaml'
-      - 'charts/**/Chart.lock'
+    branches:
+      - master
 
 permissions:
   contents: write
