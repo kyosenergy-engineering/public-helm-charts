@@ -1,0 +1,48 @@
+name: Publish Helm Charts to GHCR
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'charts/**'
+      - '.github/workflows/publish-helm-charts.yaml'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.14.0
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Package and Push Charts
+        run: |
+          CHARTS_DIR="charts"
+          for chart in "$CHARTS_DIR"/*; do
+            if [ -d "$chart" ]; then
+              CHART_NAME=$(basename "$chart")
+              echo "Packaging $CHART_NAME..."
+
+              helm dependency update "$chart"
+              helm package "$chart" --destination .cr-packages
+
+              CHART_PACKAGE=$(ls .cr-packages/${CHART_NAME}-*.tgz)
+              CHART_VERSION=$(helm show chart "$CHART_PACKAGE" | grep '^version:' | awk '{print $2}')
+
+              echo "Pushing $CHART_NAME:$CHART_VERSION to GHCR..."
+              helm push "$CHART_PACKAGE" oci://ghcr.io/${{ github.repository_owner }}
+            fi
+          done
