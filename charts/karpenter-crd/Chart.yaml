@@ -4,4 +4,4 @@ version: 1.6.1
 dependencies:
   - name: karpenter-crd
     repository: oci://public.ecr.aws/karpenter
-    version: 1.6.1
+    version: 1.7.0
