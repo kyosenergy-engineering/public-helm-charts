@@ -4,4 +4,4 @@ version: 1.8.0
 dependencies:
   - name: karpenter-crd
     repository: oci://public.ecr.aws/karpenter
-    version: 1.8.0
+    version: 1.8.1
