@@ -1,7 +1,7 @@
 apiVersion: v2
 name: karpenter-crd
-version: 1.8.3
+version: 1.8.4
 dependencies:
   - name: karpenter-crd
     repository: oci://public.ecr.aws/karpenter
-    version: 1.8.3
+    version: 1.8.4
